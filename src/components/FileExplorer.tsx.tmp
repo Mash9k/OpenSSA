@@ -1,0 +1,396 @@
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { ChevronDown, Folder, File, Search, RefreshCw, Eye, EyeOff, X, Database } from 'lucide-react';
+import { IndicatorBadge } from './ui/IndicatorBadge';
+import { FileItem, DriveInfo } from '@/lib/types';
+import { formatBytes, cn } from '@/lib/utils';
+import { searchFiles, getDrives } from '@/lib/api';
+import { ConfirmationModal } from './ConfirmationModal';
+
+interface FileExplorerProps {
+  activeTab: 'home' | 'safety' | 'remove' | 'monitor' | 'apps';
+  onFileSelect: (file: FileItem) => void;
+  onFileDelete: (file: FileItem, permanent: boolean) => void;
+  onOpenFolder: (file: FileItem) => void;
+  scanResults?: FileItem[];
+  showHiddenFiles?: boolean;
+}
+
+export function FileExplorer({ 
+  activeTab, 
+  onFileSelect, 
+  onFileDelete, 
+  onOpenFolder, 
+  scanResults, 
+  showHiddenFiles = true 
+}: FileExplorerProps) {
+  const [drives, setDrives] = useState<DriveInfo[]>([]);
+  const [selectedDrive, setSelectedDrive] = useState<DriveInfo | null>(null);
+  const [showDriveSelector, setShowDriveSelector] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [treeData, setTreeData] = useState<FileItem[]>([]);
+  const [isScanning, setIsScanning] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{file: FileItem, permanent: boolean} | null>(null);
+
+  useEffect(() => {
+    if (scanResults) {
+      setTreeData(buildTree(scanResults));
+    }
+  }, [scanResults]);
+
+  useEffect(() => {
+    getDrives().then((d) => {
+      setDrives(d);
+      if (d.length > 0 && !selectedDrive) {
+        setSelectedDrive(d[0]);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showDriveSelector) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.drive-dropdown') && !target.closest('[data-drive-btn]')) {
+        setShowDriveSelector(false);
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [showDriveSelector]);
+
+  const handleDriveClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+    setShowDriveSelector(true);
+  };
+
+  const filteredTree = useMemo(() => {
+    if (!searchQuery.trim()) return treeData;
+    const query = searchQuery.toLowerCase();
+    
+    // Track which item IDs match the query (including ancestors for path display)
+    const matchingIds = new Set<string>();
+    
+    const findMatchingItems = (items: FileItem[]): string[] => {
+      const matched: string[] = [];
+      items.forEach(item => {
+        const nameMatch = item.name.toLowerCase().includes(query);
+        const pathMatch = item.path.toLowerCase().includes(query);
+        
+        if (nameMatch || pathMatch) {
+          matched.push(item.id);
+          matchingIds.add(item.id);
+        }
+        
+        // Recursively check children
+        if (item.isFolder && item.children) {
+          const childrenMatched = findMatchingItems(item.children);
+          childrenMatched.forEach(childId => {
+            matchingIds.add(childId);
+            // Also add all ancestors so the path is visible
+            let parent: FileItem | undefined = item;
+            while (parent && parent.parentId) {
+              matchingIds.add(parent.id);
+              parent = treeData.find(f => f.id === parent.parentId);
+            }
+          });
+        }
+      });
+      return matched;
+    };
+    
+    findMatchingItems(treeData);
+    
+    // If there are matches, show only those branches; otherwise show all
+    if (matchingIds.size > 0) {
+      const filterRecursive = (items: FileItem[]): FileItem[] => {
+        return items.filter(item => {
+          // Show item if it matches directly or is an ancestor of a match
+          const isDirectMatch = matchingIds.has(item.id);
+          const isAncestor = matchingIds.has(item.id) || 
+            (item.parentId && matchingIds.has(item.parentId));
+          
+          if (isDirectMatch || isAncestor) {
+            // Filter children recursively
+            if (item.isFolder && item.children) {
+              const filteredChildren = filterRecursive(item.children);
+              return { ...item, children: filteredChildren };
+            }
+            return item;
+          }
+          return false;
+        });
+      };
+      
+      return filterRecursive(treeData);
+    }
+    
+    return treeData;
+  }, [treeData, searchQuery]);
+
+  const toggleExpand = (itemId: string) => {
+    setExpandedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const buildTree = (files: FileItem[]): FileItem[] => {
+    const map = new Map<string, FileItem>();
+    const roots: FileItem[] = [];
+
+    files.forEach(file => {
+      map.set(file.id, { ...file, children: [] });
+    });
+
+    files.forEach(file => {
+      const item = map.get(file.id)!;
+      if (file.path.includes('/') || file.path.includes('\\')) {
+        const parentPath = file.path.substring(0, file.path.lastIndexOf(file.path.includes('/') ? '/' : '\\'));
+        const parent = Array.from(map.values()).find(f => f.path === parentPath);
+        if (parent) {
+          parent.children?.push(item);
+        } else {
+          roots.push(item);
+        }
+      } else {
+        roots.push(item);
+      }
+    });
+
+    return roots;
+  };
+
+  const handleScan = async () => {
+    if (!selectedDrive) return;
+    setIsScanning(true);
+    try {
+      const results = await searchFiles('', { 
+        rootPath: selectedDrive.path, 
+        showHidden: showHiddenFiles 
+      });
+      const tree = buildTree(results);
+      setTreeData(tree);
+    } catch (e) {
+      console.error('Scan failed:', e);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const renderTree = (items: FileItem[], depth = 0): JSX.Element => {
+    return (
+      <div className={depth > 0 ? 'tree-indent' : ''}>
+        {items.map((item) => {
+          const isExpanded = expandedIds.has(item.id);
+          const hasChildren = item.isFolder && item.children && item.children.length > 0;
+          const isHidden = item.isHidden;
+
+          return (
+            <div key={item.id} className={cn('tree-item', isHidden && 'tree-item-hidden')}>
+              <div 
+                className={cn('tree-folder flex items-center gap-2', isExpanded && 'open')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleExpand(item.id);
+                }}
+              >
+                {/* Chevron/Arrow strictly on the left side */}
+                {hasChildren && (
+                  <span className="flex shrink-0">
+                    <ChevronDown className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-90')} />
+                  </span>
+                )}
+                {!hasChildren && (
+                  <span className="flex shrink-0">
+                    <ChevronDown className={cn('h-4 w-4 transition-transform opacity-0')} />
+                  </span>
+                )}
+                <span className="icon text-zinc-300 h-4 w-4 flex-shrink-0">
+                  {item.isFolder ? <Folder className="h-4 w-4" /> : <File className="h-4 w-4" />}
+                </span>
+                <span className={cn('flex-1 truncate font-medium text-white', isHidden && 'opacity-60')}>
+                  {item.name}
+                </span>
+                <span className="text-xs font-mono text-zinc-500 whitespace-nowrap">
+                  {item.isFolder && item.itemCount ? `${item.itemCount} items` : formatBytes(item.sizeBytes)}
+                </span>
+                <div className="indicators">
+                  <IndicatorBadge type="deletion-safety" value={item.deletionSafety} size="sm" showLabel={false} />
+                  <IndicatorBadge type="system-health" value={item.systemHealth} size="sm" showLabel={false} />
+                </div>
+              </div>
+
+              {/* Inline Action Bar on Expand */}
+              {isExpanded && (!hasChildren || item.isFolder) && (
+                <div className="action-bar bg-zinc-900 border-t border-zinc-800 pt-2 pb-2 mt-1 px-2 flex flex-wrap items-center gap-2 justify-start rounded-lg">
+                  {/* System file warning badge */}
+                  {item.deletionSafety === 'unsafe' || item.systemHealth === 'issue' ? (
+                    <span className="flex items-center gap-1 text-xs">
+                      {item.deletionSafety === 'unsafe' && (
+                        <span className="bg-red-500/20 rounded-full w-1 h-1 animate-pulse" />
+                      )}
+                      {item.systemHealth === 'issue' && (
+                        <span className="bg-amber-500/20 rounded-full w-1 h-1" />
+                      )}
+                      {item.deletionSafety === 'unsafe' ? 'Unsafe' : item.systemHealth === 'issue' ? 'System issue' : ''}
+                    </span>
+                  ) : null}
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Show confirmation for unsafe/system files
+                      if (item.deletionSafety === 'unsafe' || item.systemHealth === 'issue') {
+                        setDeleteTarget({file: item, permanent: false});
+                        setShowDeleteConfirmation(true);
+                      } else {
+                        onFileDelete(item, false);
+                      }
+                    }}
+                    className="modal-action-btn primary flex-1 text-xs py-1"
+                  >
+                    Move to Trash (Recommended)
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Show confirmation for unsafe/system files
+                      if (item.deletionSafety === 'unsafe' || item.systemHealth === 'issue') {
+                        setDeleteTarget({file: item, permanent: true});
+                        setShowDeleteConfirmation(true);
+                      } else {
+                        onFileDelete(item, true);
+                      }
+                    }}
+                    className="modal-action-btn danger flex-1 text-xs py-1"
+                  >
+                    Permanent Remove
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onFileSelect(item);
+                    }}
+                    className="modal-action-btn secondary flex-1 text-xs py-1"
+                  >
+                    Details
+                  </button>
+                </div>
+              )}
+
+              {isExpanded && hasChildren && item.children && renderTree(item.children, depth + 1)}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex items-center gap-3 p-3 border-b border-zinc-800 bg-zinc-950/50 flex-shrink-0">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Filter files & folders..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-8 py-1.5 text-sm font-mono bg-zinc-900 border border-zinc-800 rounded-lg placeholder-zinc-600 focus:border-white focus:outline-none text-white"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-white"
+              aria-label="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleDriveClick}
+            data-drive-btn
+            className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm font-mono text-zinc-300 hover:border-zinc-700 transition-colors"
+          >
+            <Database className="h-4 w-4" />
+            <span className="truncate max-w-[180px]">{selectedDrive?.label || 'Select Drive'}</span>
+          </button>
+
+          {showDriveSelector && (
+            <div
+              className="drive-dropdown"
+              style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, zIndex: 100, overflow: 'visible' }}
+            >
+              {drives.map(drive => (
+                <button
+                  key={drive.id}
+                  onClick={() => {
+                    setSelectedDrive(drive);
+                    setShowDriveSelector(false);
+                    setTreeData([]);
+                    setSearchQuery('');
+                  }}
+                  className={cn('w-full px-4 py-3 text-left text-sm font-mono transition-colors', selectedDrive?.id === drive.id && 'bg-zinc-900 text-white border-l-2 border-blue-500')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>{drive.label}</span>
+                  </div>
+                  <div className="text-xs text-zinc-500 mt-1 flex justify-between">
+                    <span>{formatBytes(drive.freeSpace)} free</span>
+                    <span>{formatBytes(drive.totalSpace)} total</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={handleScan}
+            disabled={isScanning || !selectedDrive}
+            className={cn('scan-button px-4 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center gap-2',
+              isScanning
+                ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 animate-shimmer cursor-wait'
+                : 'bg-white text-black border border-zinc-700 hover:bg-zinc-100 idle'
+            )}
+          >
+            <RefreshCw className={cn('h-4 w-4', isScanning && 'animate-spin')} />
+            <span>{isScanning ? 'Scanning...' : 'Scan Drive'}</span>
+          </button>
+
+          <div
+            className="p-2 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400"
+            title={showHiddenFiles ? 'Hidden files visible' : 'Hidden files hidden'}
+          >
+            {showHiddenFiles ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto scrollbar-thin p-4">
+        {treeData.length === 0 && !isScanning && selectedDrive ? (
+          <div className="empty-state py-16 flex flex-col items-center justify-center">
+            <Folder className="icon h-12 w-12 text-zinc-700 mb-2" />
+            <p className="title text-base font-semibold text-zinc-400">No scan data</p>
+            <p className="desc text-xs font-mono text-zinc-600">Click "Scan Drive" to analyze {selectedDrive.label}</p>
+          </div>
+        ) : (
+          renderTree(filteredTree)
+        )}
+      </div>
+
+}

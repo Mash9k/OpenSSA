@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OpenSSA</string>
+    <string name="title_activity_main">OpenSSA</string>
+    <string name="package_name">com.openssa.app</string>
+    <string name="custom_url_scheme">com.openssa.app</string>
+</resources>
