@@ -13,8 +13,6 @@ jobs:
   build-apk:
     name: Build Android APK
     runs-on: ubuntu-latest
-    env:
-      JAVA_VERSION: '17'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,15 +27,10 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
+          java-version: '17'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          api-level: 34
-          ndk-version: r26c
-          emulator: false
 
       - name: Install npm dependencies
         run: npm ci
@@ -47,7 +40,6 @@ jobs:
 
       - name: Sync Capacitor Android project
         run: npx cap sync android
-        working-directory: ./android
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -58,6 +50,7 @@ jobs:
         working-directory: ./android
 
       - name: Find and rename APK
+        id: rename_apk
         run: |
           APK_PATH=$(find ./android/app/build/outputs/apk -name "*.apk" | head -1)
           if [ -z "$APK_PATH" ]; then
@@ -67,7 +60,6 @@ jobs:
           RENAMED="OpenSSA-${{ github.ref_name }}-android.apk"
           cp "$APK_PATH" "$RENAMED"
           echo "apk_path=$RENAMED" >> $GITHUB_OUTPUT
-        id: rename_apk
 
       - name: Upload APK to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -78,4 +70,3 @@ jobs:
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
