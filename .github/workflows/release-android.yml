@@ -38,6 +38,9 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      - name: Add Capacitor Android platform
+        run: npx cap add android || true
+
       - name: Sync Capacitor Android project
         run: npx cap sync android
 
