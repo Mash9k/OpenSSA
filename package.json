@@ -13,26 +13,26 @@
     "cap:add:android": "cap add android"
   },
   "dependencies": {
-    "@capacitor/android": "^6.0.0",
-    "@capacitor/cli": "^6.0.0",
-    "@capacitor/core": "^6.0.0",
-    "@tauri-apps/api": "^2.0.0",
-    "@tauri-apps/plugin-shell": "^2.0.0",
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@tauri-apps/api": "^2.12.5",
+    "@tauri-apps/plugin-shell": "^2.6.0",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.453.0",
-    "next": "^14.2.15",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.5.4"
+    "lucide-react": "^1.75.0",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.0.0",
-    "@types/node": "^20.14.0",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
+    "@tauri-apps/cli": "^2.12.5",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.4",
-    "typescript": "^5.4.5"
+    "typescript": "^7.0.2"
   }
 }

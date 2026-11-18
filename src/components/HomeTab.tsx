@@ -360,6 +360,20 @@ export function HomeTab({
           )}
         </div>
 
+        <button
+          onClick={handleFullScan}
+          disabled={isScanning || !selectedDrive}
+          className={cn(
+            'scan-button flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all',
+            isScanning 
+              ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 animate-pulse cursor-wait'
+              : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+          )}
+        >
+          <RefreshCw className={cn('h-4 w-4', isScanning && 'animate-spin')} />
+          <span>{isScanning ? 'Scanning...' : 'Scan Drive'}</span>
+        </button>
+
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 dark:text-zinc-400" />
           <input

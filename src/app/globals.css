@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&family=Source+Code+Pro:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&family=Source+Code+Pro:wght@300;400;500;600&display=swap');
 
 :root {
   /* Monochrome Foundation */
@@ -296,7 +296,7 @@ button {
 }
 
 .animate-fade-in {
-  animation: fade-in var(--transition-fast) forwards;
+  animation: fade-in var(--transition-fast) forwards.
 }
 
 .animate-fade-out {
@@ -388,7 +388,7 @@ button {
 }
 
 .scan-button.scanning::before {
-  animation: shimmer 1s ease-in-out infinite;
+  animation: shimmer 1s ease-in-out infinite.
 }
 
 .scan-button.idle {
@@ -458,7 +458,7 @@ button {
 }
 
 .sidebar-nav-item .label {
-  @apply whitespace-nowrap overflow-hidden transition-all duration-200;
+  @apply whitespace-nowrap overflow-hidden transition-all duration-200
 }
 
 .sidebar.collapsed .sidebar-nav-item .label {
@@ -512,31 +512,31 @@ button {
 
 /* Results list */
 .result-row {
-  @apply flex items-center gap-3 px-4 py-3 border-b border-zinc-900 hover:bg-zinc-900/50 transition-colors cursor-pointer;
+  @apply flex items-center gap-3 px-4 py-3 border-b border-zinc-900 hover:bg-zinc-900/50 transition-colors cursor-pointer
 }
 
 .result-row.selected {
-  @apply bg-zinc-800/50;
+  @apply bg-zinc-800/50
 }
 
 .result-row .icon {
-  @apply flex-shrink-0 h-5 w-5 text-zinc-400;
+  @apply flex-shrink-0 h-5 w-5 text-zinc-400
 }
 
 .result-row .name {
-  @apply flex-1 truncate font-medium text-white;
+  @apply flex-1 truncate font-medium text-white
 }
 
 .result-row .path {
-  @apply flex-1 truncate text-xs font-mono text-zinc-500;
+  @apply flex-1 truncate text-xs font-mono text-zinc-500
 }
 
 .result-row .size {
-  @apply text-sm font-mono text-zinc-400 whitespace-nowrap;
+  @apply text-sm font-mono text-zinc-400 whitespace-nowrap
 }
 
 .result-row .indicators {
-  @apply flex items-center gap-2;
+  @apply flex items-center gap-2
 }
 
 /* Indicator pills */
@@ -547,267 +547,267 @@ button {
 .indicator-pill.safe {
   background: var(--indicator-safe-bg);
   border-color: var(--indicator-safe-border);
-  color: var(--indicator-safe);
+  color: var(--indicator-safe).
 }
 
 .indicator-pill.unsafe {
   background: var(--indicator-unsafe-bg);
   border-color: var(--indicator-unsafe-border);
-  color: var(--indicator-unsafe);
+  color: var(--indicator-unsafe).
 }
 
 .indicator-pill.mixed {
   background: var(--indicator-mixed-bg);
   border-color: var(--indicator-mixed-border);
-  color: var(--indicator-mixed);
+  color: var(--indicator-mixed).
 }
 
 .indicator-pill.healthy {
   background: var(--indicator-healthy-bg);
   border-color: var(--indicator-healthy-border);
-  color: var(--indicator-healthy);
+  color: var(--indicator-healthy).
 }
 
 .indicator-pill.issue {
   background: var(--indicator-issue-bg);
   border-color: var(--indicator-issue-border);
-  color: var(--indicator-issue);
+  color: var(--indicator-issue).
 }
 
 /* Modal detail */
 .modal-detail-section {
-  @apply p-4 border-b border-zinc-800;
+  @apply p-4 border-b border-zinc-800
 }
 
 .modal-detail-section:last-child {
-  @apply border-b-0;
+  @apply border-b-0
 }
 
 .modal-detail-label {
-  @apply text-xs font-medium uppercase tracking-wider text-zinc-500 mb-2;
+  @apply text-xs font-medium uppercase tracking-wider text-zinc-500 mb-2
 }
 
 .modal-detail-value {
-  @apply text-sm font-mono text-white;
+  @apply text-sm font-mono text-white
 }
 
 .modal-detail-multiline {
-  @apply text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap;
+  @apply text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap
 }
 
 .modal-actions {
-  @apply p-4 border-t border-zinc-800 bg-zinc-900/50 flex items-center justify-end gap-3;
+  @apply p-4 border-t border-zinc-800 bg-zinc-900/50 flex items-center justify-end gap-3
 }
 
 .modal-action-btn {
-  @apply px-4 py-2 text-sm font-medium rounded-lg transition-colors;
+  @apply px-4 py-2 text-sm font-medium rounded-lg transition-colors
 }
 
 .modal-action-btn.primary {
-  @apply bg-white text-black hover:bg-zinc-100;
+  @apply bg-white text-black hover:bg-zinc-100
 }
 
 .modal-action-btn.secondary {
-  @apply bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700;
+  @apply bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700
 }
 
 .modal-action-btn.danger {
-  @apply bg-zinc-900 text-red-400 border border-red-500/50 hover:bg-red-500/10;
+  @apply bg-zinc-900 text-red-400 border border-red-500/50 hover:bg-red-500/10
 }
 
 /* Settings */
 .setting-row {
-  @apply flex items-center justify-between py-4 border-b border-zinc-800;
+  @apply flex items-center justify-between py-4 border-b border-zinc-800
 }
 
 .setting-row:last-child {
-  @apply border-b-0;
+  @apply border-b-0
 }
 
 .setting-label {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-white
 }
 
 .setting-description {
-  @apply text-xs text-zinc-500 mt-0.5;
+  @apply text-xs text-zinc-500 mt-0.5
 }
 
 .toggle-switch {
   @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer;
-  background: var(--border-secondary);
+  background: var(--border-secondary).
 }
 
 .toggle-switch.active {
-  background: var(--indicator-safe);
+  background: var(--indicator-safe).
 }
 
 .toggle-switch::after {
   content: '';
-  @apply h-4 w-4 rounded-full bg-white shadow transition-transform duration-200;
-  transform: translateX(1px);
+  @apply h-4 w-4 rounded-full bg-white shadow transition-transform duration-200
+  ; transform: translateX(1px).
 }
 
 .toggle-switch.active::after {
-  transform: translateX(22px);
+  transform: translateX(22px).
 }
 
 /* Process list */
 .process-row {
-  @apply flex items-center gap-3 px-4 py-3 border-b border-zinc-900 hover:bg-zinc-900/50 transition-colors;
+  @apply flex items-center gap-3 px-4 py-3 border-b border-zinc-900 hover:bg-zinc-900/50 transition-colors
 }
 
 .process-row .name {
-  @apply flex-1 min-w-0;
+  @apply flex-1 min-w-0
 }
 
 .process-row .name-text {
-  @apply truncate font-medium text-white;
+  @apply truncate font-medium text-white
 }
 
 .process-row .exe-path {
-  @apply truncate text-xs font-mono text-zinc-500;
+  @apply truncate text-xs font-mono text-zinc-500
 }
 
 .process-row .metrics {
-  @apply flex items-center gap-4 text-sm font-mono text-zinc-400 whitespace-nowrap;
+  @apply flex items-center gap-4 text-sm font-mono text-zinc-400 whitespace-nowrap
 }
 
 /* Log entry */
 .log-entry {
-  @apply px-4 py-2 border-b border-zinc-900 hover:bg-zinc-900/50 transition-colors;
+  @apply px-4 py-2 border-b border-zinc-900 hover:bg-zinc-900/50 transition-colors
 }
 
 .log-entry .timestamp {
-  @apply text-xs font-mono text-zinc-500 whitespace-nowrap;
+  @apply text-xs font-mono text-zinc-500 whitespace-nowrap
 }
 
 .log-entry .level {
-  @apply px-2 py-0.5 text-xs font-medium rounded;
+  @apply px-2 py-0.5 text-xs font-medium rounded
 }
 
 .log-entry .message {
-  @apply text-sm text-zinc-300 mt-1 font-mono;
+  @apply text-sm text-zinc-300 mt-1 font-mono
 }
 
 /* Segmented control */
 .segmented-control {
-  @apply flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg;
+  @apply flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-lg
 }
 
 .segmented-control button {
-  @apply px-3 py-1.5 text-sm font-medium rounded-md transition-all;
+  @apply px-3 py-1.5 text-sm font-medium rounded-md transition-all
 }
 
 .segmented-control button.active {
-  @apply bg-white text-black shadow-sm;
+  @apply bg-white text-black shadow-sm
 }
 
 .segmented-control button:not(.active) {
-  @apply text-zinc-400 hover:text-white hover:bg-zinc-800;
+  @apply text-zinc-400 hover:text-white hover:bg-zinc-800
 }
 
 /* Stats card */
 .stats-card {
-  @apply p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg;
+  @apply p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg
 }
 
 .stats-card .value {
-  @apply text-3xl font-bold font-mono text-white;
+  @apply text-3xl font-bold font-mono text-white
 }
 
 .stats-card .label {
-  @apply text-sm text-zinc-400 mt-1;
+  @apply text-sm text-zinc-400 mt-1
 }
 
 /* Quick action */
 .quick-action {
-  @apply p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors cursor-pointer;
+  @apply p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors cursor-pointer
 }
 
 .quick-action:hover {
-  @apply bg-zinc-900;
+  @apply bg-zinc-900
 }
 
 .quick-action .icon {
-  @apply h-6 w-6 text-blue-400 mb-2;
+  @apply h-6 w-6 text-blue-400 mb-2
 }
 
 .quick-action .title {
-  @apply font-medium text-white;
+  @apply font-medium text-white
 }
 
 .quick-action .desc {
-  @apply text-sm text-zinc-500 mt-1;
+  @apply text-sm text-zinc-500 mt-1
 }
 
 /* Empty state */
 .empty-state {
-  @apply flex flex-col items-center justify-center py-12 text-center text-zinc-500;
+  @apply flex flex-col items-center justify-center py-12 text-center text-zinc-500
 }
 
 .empty-state .icon {
-  @apply h-12 w-12 opacity-30 mb-4;
+  @apply h-12 w-12 opacity-30 mb-4
 }
 
 .empty-state .title {
-  @apply text-lg font-medium text-zinc-400 mb-1;
+  @apply text-lg font-medium text-zinc-400 mb-1
 }
 
 .empty-state .desc {
-  @apply text-sm max-w-xs;
+  @apply text-sm max-w-xs
 }
 
 /* Loading spinner */
 .loading-spinner {
-  @apply w-5 h-5 border-2 border-zinc-600 border-t-white rounded-full animate-spin;
+  @apply w-5 h-5 border-2 border-zinc-600 border-t-white rounded-full animate-spin
 }
 
 /* Drive card */
 .drive-card {
-  @apply p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors cursor-pointer;
+  @apply p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors cursor-pointer
 }
 
 .drive-card.selected {
-  @apply border-blue-500 bg-zinc-900;
+  @apply border-blue-500 bg-zinc-900
 }
 
 .drive-card .name {
-  @apply font-medium text-white;
+  @apply font-medium text-white
 }
 
 .drive-card .path {
-  @apply text-xs font-mono text-zinc-500 mt-1;
+  @apply text-xs font-mono text-zinc-500 mt-1
 }
 
 .drive-card .space {
-  @apply text-sm font-mono text-zinc-400 mt-2 flex justify-between;
+  @apply text-sm font-mono text-zinc-400 mt-2 flex justify-between
 }
 
 /* Tree view folder */
 .tree-folder {
-  @apply flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer;
+  @apply flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer
 }
 
 .tree-folder:hover {
-  @apply bg-zinc-800/50;
+  @apply bg-zinc-800/50
 }
 
 .tree-folder.open {
-  @apply bg-zinc-800;
+  @apply bg-zinc-800
 }
 
 .tree-folder .icon {
-  @apply h-4 w-4 text-zinc-400 flex-shrink-0;
+  @apply h-4 w-4 text-zinc-400 flex-shrink-0
 }
 
 .tree-folder .name {
-  @apply flex-1 truncate font-medium text-white;
+  @apply flex-1 truncate font-medium text-white
 }
 
 .tree-folder .size {
-  @apply text-xs font-mono text-zinc-500 whitespace-nowrap;
+  @apply text-xs font-mono text-zinc-500 whitespace-nowrap
 }
 
 .tree-folder .indicators {
-  @apply flex items-center gap-1;
+  @apply flex items-center gap-1
 }

@@ -29,7 +29,6 @@ export function FileExplorer({
   const [selectedDrive, setSelectedDrive] = useState<DriveInfo | null>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [treeData, setTreeData] = useState<FileItem[]>([]);
-  const [isScanning, setIsScanning] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [showDriveSelector, setShowDriveSelector] = useState(false);
@@ -266,28 +265,6 @@ export function FileExplorer({
         </div>
 
         <button
-          className={cn(
-            'scan-button px-4 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center gap-2',
-            isScanning 
-              ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 animate-shimmer cursor-wait'
-              : 'dark:bg-zinc-900 dark:text-zinc-100 border border-zinc-700 hover:bg-zinc-800 idle'
-          )}
-          onClick={() => {
-            if (selectedDrive) {
-              setIsScanning(true);
-              searchFiles('', { rootPath: selectedDrive.path, showHidden: showHiddenFiles }).then(results => {
-                setTreeData(buildTree(results));
-                setIsScanning(false);
-              });
-            }
-          }}
-          disabled={isScanning || !selectedDrive}
-        >
-          <RefreshCw className={cn('h-4 w-4', isScanning && 'animate-spin')} />
-          <span>{isScanning ? 'Scanning...' : 'Scan Drive'}</span>
-        </button>
-
-        <button
           onClick={() => setShowDriveSelector(!showDriveSelector)}
           className="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400"
           aria-label="Drive options"
@@ -296,12 +273,28 @@ export function FileExplorer({
         </button>
       </div>
 
-      {treeData.length === 0 && !isScanning && !showDriveSelector && selectedDrive ? (
+      {treeData.length === 0 && !showDriveSelector && selectedDrive ? (
         <div className="flex-1 flex items-center justify-center bg-white dark:bg-zinc-950">
           <div className="empty-state flex flex-col items-center">
             <Database className="icon h-12 w-12 text-zinc-700 dark:text-zinc-500 mb-2" />
-            <p className="title text-base font-semibold text-zinc-500 dark:text-zinc-400">Drive not scanned</p>
-            <p className="desc text-xs font-mono text-zinc-600 dark:text-zinc-400">Click "Scan Drive" to analyze {selectedDrive.label}</p>
+            {activeTab === 'home' ? (
+              <p className="title text-base font-semibold text-zinc-500 dark:text-zinc-400">Drive not scanned</p>
+            ) : (
+              <p className="title text-base font-semibold text-zinc-500 dark:text-zinc-400">Scan from Home tab</p>
+            )}
+            {activeTab === 'home' ? (
+              <p className="desc text-xs font-mono text-zinc-600 dark:text-zinc-400">Click "Scan Drive" to analyze {selectedDrive.label}</p>
+            ) : (
+              <>
+                <p className="desc text-xs font-mono text-zinc-600 dark:text-zinc-400 mb-3">No scan results available.</p>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('navigate-home'))}
+                  className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  Go to Home Tab to Scan
+                </button>
+              </>
+            )}
           </div>
         </div>
       ) : filteredTree.length === 0 && searchQuery ? (

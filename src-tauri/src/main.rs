@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use tauri::{Manager, State};
 
 use serde::{Deserialize, Serialize};
 use sysinfo::{Disks, MemoryRefreshKind, Networks, System};
@@ -568,15 +569,31 @@ lazy_static::lazy_static! {
     static ref SCAN_BUFFER: Arc<Mutex<Vec<(String, u64)>>> = Arc::new(Mutex::new(Vec::new()));
 }
 
+
+// Persistent System state managed by Tauri
+struct AppState {
+    system: Arc<Mutex<System>>,
+}
+
+impl AppState {
+    fn new() -> Self {
+        let mut sys = System::new_all();
+        sys.refresh_all();
+        Self {
+            system: Arc::new(Mutex::new(sys)),
+        }
+    }
+}
+
 #[tauri::command]
-fn get_system_metrics() -> SystemMetrics {
-    let mut sys = System::new_all();
-    sys.refresh_cpu_all();
-    sys.refresh_memory_specifics(MemoryRefreshKind::everything());
+fn get_system_metrics(state: State<'_, AppState>) -> SystemMetrics {
+    let mut sys = state.system.lock().unwrap();
     
-    // Give CPU refresh a small delta for accurate percentage
+    // Refresh CPU with proper delta interval for accurate readings
+    sys.refresh_cpu_all();
     std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
     sys.refresh_cpu_all();
+    sys.refresh_memory_specifics(sysinfo::MemoryRefreshKind::everything());
 
     let cpu_usage_percent = sys.global_cpu_usage();
     let cpu_cores = sys.cpus().len();
@@ -1379,14 +1396,12 @@ fn get_process_user(_pid: u32) -> String {
 }
 
 #[tauri::command]
-fn get_processes() -> Vec<ProcessInfo> {
-    let mut sys = System::new_all();
-    sys.refresh_processes(sysinfo::ProcessesToUpdate::All);
-
-    // sysinfo computes CPU usage from the delta between two refreshes,
-    // so we need a second refresh after MINIMUM_CPU_UPDATE_INTERVAL.
+fn get_processes(state: State<'_, AppState>) -> Vec<ProcessInfo> {
+    let mut sys = state.system.lock().unwrap();
+    
+    sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
     std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
-    sys.refresh_processes(sysinfo::ProcessesToUpdate::All);
+    sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
     
     let mut processes = Vec::new();
     let mut count = 0;
@@ -1792,6 +1807,7 @@ fn get_applications_list() -> Vec<ApplicationInfo> {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .manage(AppState::new())
         .invoke_handler(tauri::generate_handler![
             get_system_metrics,
             scan_directory,

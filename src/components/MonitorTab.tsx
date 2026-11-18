@@ -435,6 +435,7 @@ export default function MonitorTab() {
   const [processes, setProcesses] = useState<ProcessInfo[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMonitorTabHidden, setIsMonitorTabHidden] = useState(false);
   const { cpuMax, ramMax, swapMax, recvMax, sentMax, historyVersion, cpuHistory, ramHistory, swapHistory, recvHistory, sentHistory } = useCharts();
 
   const cpuHistoryRef = useRef(cpuHistory.current);
@@ -467,8 +468,6 @@ export default function MonitorTab() {
       document.removeEventListener('visibilitychange', onChange);
     };
   }, []);
-
-  const [isMonitorTabHidden, setIsMonitorTabHidden] = useState(false);
 
   /* ---------------------------------- Render ---------------------------------- */
 
@@ -506,33 +505,56 @@ export default function MonitorTab() {
         activeProcessesCount: 120,
       };
     }
-    return metrics as SystemMetrics | null;
-  }, [isLoading, metrics]);
+    // Always return a valid object - metrics should never be null here
+    // because useEffect in useResourceHistory sets it on first fetch
+    return metrics ?? {
+      cpuUsagePercent: 0,
+      cpuCores: 8,
+      cpuModel: 'Generic CPU',
+      cpuPerCore: new Array(8).fill(0),
+      ramUsedBytes: 8 * 1024 * 1024 * 1024,
+      ramTotalBytes: 16 * 1024 * 1024 * 1024,
+      ramUsagePercent: 50,
+      swapUsedBytes: 512 * 1024 * 1024,
+      swapTotalBytes: 4 * 1024 * 1024 * 1024,
+      gpuUsagePercent: 0,
+      gpuName: null,
+      gpuMemoryUsedBytes: 0,
+      gpuMemoryTotalBytes: 0,
+      diskUsedBytes: 256 * 1024 * 1024 * 1024,
+      diskTotalBytes: 1024 * 1024 * 1024 * 1024,
+      diskUsagePercent: 25,
+      networkReceivedBps: 125 * 1024,
+      networkTransmittedBps: 45 * 1024,
+      uptimeSeconds: 3600,
+      activeProcessesCount: 120,
+    };
+  }, [isLoading]);
 
   const cpuData = useMemo(() => {
     if (!safeMetrics) return new Array(60).fill(0);
     // Build CPU history - keep last 60 points
     const history = cpuHistory.current || [];
-    return history.slice(-60).map(() => safeMetrics!.cpuUsagePercent);
-  }, [safeMetrics!.cpuUsagePercent, cpuHistory.current]);
+    return history.slice(-60).map(() => safeMetrics.cpuUsagePercent);
+  }, [safeMetrics.cpuUsagePercent, cpuHistory.current]);
 
   const ramData = useMemo(() => {
     if (!safeMetrics) return new Array(60).fill(50);
     const history = ramHistory.current || [];
-    return history.slice(-60).map(() => safeMetrics!.ramUsagePercent);
-  }, [safeMetrics!.ramUsagePercent, ramHistory.current]);
+    return history.slice(-60).map(() => safeMetrics.ramUsagePercent);
+  }, [safeMetrics.ramUsagePercent, ramHistory.current]);
 
   const swapData = useMemo(() => {
     if (!safeMetrics) return new Array(60).fill(0);
     const history = swapHistory.current || [];
-    return history.slice(-60).map(() => safeMetrics!.swapUsedBytes / Math.max(1, safeMetrics!.swapTotalBytes) * 100);
-  }, [safeMetrics!.swapUsedBytes / Math.max(1, safeMetrics!.swapTotalBytes) * 100, swapHistory.current]);
+    return history.slice(-60).map(() => safeMetrics.swapUsedBytes / Math.max(1, safeMetrics.swapTotalBytes) * 100);
+  }, [safeMetrics.swapUsedBytes, safeMetrics.swapTotalBytes, swapHistory.current]);
 
   const coreData = useMemo(() => {
     if (!safeMetrics) return new Array(8).fill(0);
     const history = cpuHistory.current || [];
-    return safeMetrics!.cpuPerCore ? safeMetrics!.cpuPerCore.slice(0, 8) : new Array(8).fill(0);
-  }, [safeMetrics!.cpuPerCore]);
+    return safeMetrics.cpuPerCore ? safeMetrics.cpuPerCore.slice(0, 8) : new Array(8).fill(0);
+  }, [safeMetrics.cpuPerCore]);
 
   /* ---------------------------------- Render ---------------------------------- */
 
